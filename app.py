@@ -1,12 +1,24 @@
 import io
+import os
 import pandas as pd
 import streamlit as st
 from openpyxl import load_workbook
 from docx import Document
-from docx.shared import Pt, Inches
+from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 st.set_page_config(page_title="SEO Roadmap Builder (Prototype)", layout="wide")
+
+DEFAULT_PLAYPACK_PATH = "SEO_PreMade_Plays_By_Client_Profile_v2.xlsx"
+
+def read_default_playpack_bytes() -> bytes:
+    if not os.path.exists(DEFAULT_PLAYPACK_PATH):
+        raise FileNotFoundError(
+            f"Default play pack not found at '{DEFAULT_PLAYPACK_PATH}'. "
+            "Make sure the XLSX is in the repo root."
+        )
+    with open(DEFAULT_PLAYPACK_PATH, "rb") as f:
+        return f.read()
 
 def load_profiles(xlsx_bytes: bytes):
     wb = load_workbook(io.BytesIO(xlsx_bytes), data_only=True)
@@ -107,12 +119,19 @@ def generate_docx(client_name: str, profile_label: str, profile_desc: str, plays
     return buf
 
 st.title("SEO Roadmap Builder (Prototype)")
-st.caption("Generate a DOCX action-plan skeleton from client profile + audit-driven play-pack, then enrich with keywords/topics.")
+st.caption("Play packs are pre-loaded from the repo. Optional: override by uploading another play-pack XLSX.")
 
 with st.sidebar:
     st.header("Inputs")
     client_name = st.text_input("Client name", value="Client Name")
-    plays_file = st.file_uploader("Play Packs XLSX", type=["xlsx"], help="Upload the pre-made plays by client profile (v2).", key="plays")
+
+    st.subheader("Play Pack")
+    use_override = st.toggle("Override play pack (upload XLSX)", value=False)
+    override_file = None
+    if use_override:
+        override_file = st.file_uploader("Upload Play Packs XLSX", type=["xlsx"], key="plays_override")
+        st.caption("If OFF, the app uses the pre-loaded play pack in the repo.")
+
     topics_file = st.file_uploader("Keyword/Topic CSV (optional)", type=["csv"], help="Optional enrichment file.", key="topics")
 
     st.divider()
@@ -121,18 +140,32 @@ with st.sidebar:
     local_priority = st.checkbox("Local/GBP priority", value=True)
     content_gap = st.checkbox("Content gaps present", value=True)
 
-if plays_file is None:
-    st.info("Upload your Play Packs XLSX to start.")
+# Load play pack (default or override)
+try:
+    if use_override and override_file is not None:
+        xlsx_bytes = override_file.read()
+        playpack_label = "Uploaded override"
+    else:
+        xlsx_bytes = read_default_playpack_bytes()
+        playpack_label = "Pre-loaded default"
+except Exception as e:
+    st.error(f"Could not load play pack: {e}")
     st.stop()
 
-xlsx_bytes = plays_file.read()
 profiles = load_profiles(xlsx_bytes)
 profile_keys = list(profiles.keys())
 if not profile_keys:
-    st.error("No profiles found in the uploaded XLSX.")
+    st.error("No profiles found in the play pack XLSX (missing Strategy table headers).")
     st.stop()
 
-profile_choice = st.selectbox("Select client profile", profile_keys, format_func=lambda k: f"{k} — {profiles[k]['desc']}")
+st.info(f"Using play pack: **{playpack_label}**")
+
+profile_choice = st.selectbox(
+    "Select client profile",
+    profile_keys,
+    format_func=lambda k: f"{k} — {profiles[k]['desc']}"
+)
+
 df = profiles[profile_choice]["df"].copy()
 
 # Prototype overrides
