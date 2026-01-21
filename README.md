@@ -1,7 +1,7 @@
 # SEO Roadmap Builder (Prototype)
 
 Streamlit prototype that generates a **DOCX action-plan skeleton** from:
-- a Play Packs XLSX (per client profile, with Priority Order + Month Allocation)
+- a **pre-loaded Play Pack XLSX** in the repo (per client profile, with Priority Order + Month Allocation)
 - optional keyword/topic CSV upload (enrichment)
 
 ## What this prototype does
@@ -17,7 +17,7 @@ Streamlit prototype that generates a **DOCX action-plan skeleton** from:
 - `requirements.txt` — dependencies
 - `runtime.txt` — python version (useful for Streamlit Cloud)
 - `.streamlit/config.toml` — Streamlit config
-- `SEO_PreMade_Plays_By_Client_Profile_v2.xlsx` — sample play pack input
+- `SEO_PreMade_Plays_By_Client_Profile_v2.xlsx` — **pre-loaded** play pack used by default (no upload needed)
 
 ---
 
@@ -49,3 +49,4 @@ Open: http://localhost:8501
 ## Prototype notes
 - This version generates the “skeleton” sections and timeline table.
 - Next iteration: map Plays → Tasks using the Optimization Library, and generate per-month sections with task lists.
+
