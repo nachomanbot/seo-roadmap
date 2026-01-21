@@ -1,0 +1,4 @@
+topic,keyword,intent,notes
+Neighborhood page,homes for sale in [CITY],transactional,Replace placeholders with real city/neighborhood
+Service page,luxury real estate agent [CITY],commercial,Use for service pages
+Blog,what to know before buying a home in [CITY],informational,TOFU blog support
